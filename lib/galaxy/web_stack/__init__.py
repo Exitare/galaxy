@@ -474,9 +474,9 @@ class UWSGIApplicationStack(MessageApplicationStack):
             root_pid = uwsgi.masterpid() or os.getpid()
             msg.append('Starting server in PID %d.' % root_pid)
             for s in UWSGIApplicationStack._serving_on():
-                msg.append('serving on ' + s)
+                msg.append('Serving on ' + s)
             if len(msg) == 1:
-                msg.append('serving on unknown URL')
+                msg.append('Serving on unknown URL')
         log.info('\n'.join(msg))
 
     def start(self):
