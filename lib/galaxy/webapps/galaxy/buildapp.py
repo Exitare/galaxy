@@ -74,23 +74,27 @@ def app_factory(global_conf, load_app_kwds={}, **kwargs):
     webapp.add_route('/authnz/{provider}/disconnect', controller='authnz', action='disconnect', provider=None)
 
     # These two routes handle our simple needs at the moment
-    webapp.add_route('/async/{tool_id}/{data_id}/{data_secret}', controller='async', action='index', tool_id=None, data_id=None, data_secret=None)
+    webapp.add_route('/async/{tool_id}/{data_id}/{data_secret}', controller='async', action='index', tool_id=None,
+                     data_id=None, data_secret=None)
     webapp.add_route('/{controller}/{action}', action='index')
     webapp.add_route('/{action}', controller='root', action='index')
 
     # allow for subdirectories in extra_files_path
-    webapp.add_route('/datasets/{dataset_id}/display/{filename:.+?}', controller='dataset', action='display', dataset_id=None, filename=None)
-    webapp.add_route('/datasets/{dataset_id}/{action}/{filename}', controller='dataset', action='index', dataset_id=None, filename=None)
-    webapp.add_route('/display_application/{dataset_id}/{app_name}/{link_name}/{user_id}/{app_action}/{action_param}/{action_param_extra:.+?}',
-                     controller='dataset', action='display_application', dataset_id=None, user_id=None,
-                     app_name=None, link_name=None, app_action=None, action_param=None, action_param_extra=None)
-    webapp.add_route('/u/{username}/d/{slug}/{filename}', controller='dataset', action='display_by_username_and_slug', filename=None)
+    webapp.add_route('/datasets/{dataset_id}/display/{filename:.+?}', controller='dataset', action='display',
+                     dataset_id=None, filename=None)
+    webapp.add_route('/datasets/{dataset_id}/{action}/{filename}', controller='dataset', action='index',
+                     dataset_id=None, filename=None)
+    webapp.add_route(
+        '/display_application/{dataset_id}/{app_name}/{link_name}/{user_id}/{app_action}/{action_param}/{action_param_extra:.+?}',
+        controller='dataset', action='display_application', dataset_id=None, user_id=None,
+        app_name=None, link_name=None, app_action=None, action_param=None, action_param_extra=None)
+    webapp.add_route('/u/{username}/d/{slug}/{filename}', controller='dataset', action='display_by_username_and_slug',
+                     filename=None)
     webapp.add_route('/u/{username}/p/{slug}', controller='page', action='display_by_username_and_slug')
     webapp.add_route('/u/{username}/h/{slug}', controller='history', action='display_by_username_and_slug')
     webapp.add_route('/u/{username}/w/{slug}', controller='workflow', action='display_by_username_and_slug')
     webapp.add_route('/u/{username}/w/{slug}/{format}', controller='workflow', action='display_by_username_and_slug')
     webapp.add_route('/u/{username}/v/{slug}', controller='visualization', action='display_by_username_and_slug')
-
     # TODO: Refactor above routes into external method to allow testing in
     # isolation as well.
     populate_api_routes(webapp, app)
@@ -211,6 +215,25 @@ def populate_api_routes(webapp, app):
         'dataset_collection',
     ]
 
+    webapp.mapper.connect('job_resource_predictions',
+                          '/api/jobresourcepredictions/',
+                          controller='job_resource_predictions',
+                          action='index',
+                          conditions=dict(method=["GET"]))
+
+    webapp.mapper.connect('job_resource_predictions',
+                          '/api/jobresourcepredictions/{tool}',
+                          controller='job_resource_predictions',
+                          action='get',
+                          conditions=dict(method=["GET"]))
+
+    webapp.mapper.connect('job_resource_predictions',
+                          '/api/jobresourcepredictions/{tool}',
+                          controller='job_resource_predictions',
+                          action='post',
+                          conditions=dict(method=["POST"]))
+
+
     # Accesss HDA details via histories/{history_id}/contents/datasets/{hda_id}
     webapp.mapper.resource("content_typed",
                            "{type:%s}s" % "|".join(valid_history_contents_types),
@@ -270,7 +293,8 @@ def populate_api_routes(webapp, app):
     _add_item_tags_controller(webapp,
                               name_prefix="history_content_",
                               path_prefix='/api/histories/{history_id}/contents/{history_content_id}')
-    webapp.mapper.connect('/api/histories/published', action='published', controller="histories", conditions=dict(method=["GET"]))
+    webapp.mapper.connect('/api/histories/published', action='published', controller="histories",
+                          conditions=dict(method=["GET"]))
     webapp.mapper.connect('/api/histories/shared_with_me', action='shared_with_me', controller="histories")
 
     webapp.mapper.connect('cloud_storage',
@@ -310,7 +334,8 @@ def populate_api_routes(webapp, app):
 
     webapp.mapper.resource('dataset', 'datasets', path_prefix='/api')
     webapp.mapper.resource('tool_data', 'tool_data', path_prefix='/api')
-    webapp.mapper.connect('/api/tool_data/{id:.+?}/fields/{value:.+?}/files/{path:.+?}', action='download_field_file', controller="tool_data")
+    webapp.mapper.connect('/api/tool_data/{id:.+?}/fields/{value:.+?}/files/{path:.+?}', action='download_field_file',
+                          controller="tool_data")
     webapp.mapper.connect('/api/tool_data/{id:.+?}/fields/{value:.+?}', action='show_field', controller="tool_data")
     webapp.mapper.connect('/api/tool_data/{id:.+?}/reload', action='reload', controller="tool_data")
     webapp.mapper.resource('dataset_collection', 'dataset_collections', path_prefix='/api/')
@@ -364,56 +389,89 @@ def populate_api_routes(webapp, app):
     webapp.mapper.connect('/api/tools/{id:.+?}/xrefs', action='xrefs', controller="tools")
     webapp.mapper.connect('/api/tools/{id:.+?}/download', action='download', controller="tools")
     webapp.mapper.connect('/api/tools/{id:.+?}/requirements', action='requirements', controller="tools")
-    webapp.mapper.connect('/api/tools/{id:.+?}/install_dependencies', action='install_dependencies', controller="tools", conditions=dict(method=["POST"]))
-    webapp.mapper.connect('/api/tools/{id:.+?}/dependencies', action='install_dependencies', controller="tools", conditions=dict(method=["POST"]))
-    webapp.mapper.connect('/api/tools/{id:.+?}/dependencies', action='uninstall_dependencies', controller="tools", conditions=dict(method=["DELETE"]))
-    webapp.mapper.connect('/api/tools/{id:.+?}/build_dependency_cache', action='build_dependency_cache', controller="tools", conditions=dict(method=["POST"]))
+    webapp.mapper.connect('/api/tools/{id:.+?}/install_dependencies', action='install_dependencies', controller="tools",
+                          conditions=dict(method=["POST"]))
+    webapp.mapper.connect('/api/tools/{id:.+?}/dependencies', action='install_dependencies', controller="tools",
+                          conditions=dict(method=["POST"]))
+    webapp.mapper.connect('/api/tools/{id:.+?}/dependencies', action='uninstall_dependencies', controller="tools",
+                          conditions=dict(method=["DELETE"]))
+    webapp.mapper.connect('/api/tools/{id:.+?}/build_dependency_cache', action='build_dependency_cache',
+                          controller="tools", conditions=dict(method=["POST"]))
     webapp.mapper.connect('/api/tools/{id:.+?}', action='show', controller="tools")
     webapp.mapper.resource('tool', 'tools', path_prefix='/api')
     webapp.mapper.resource('dynamic_tools', 'dynamic_tools', path_prefix='/api')
 
     webapp.mapper.connect('/api/entry_points', action='index', controller="tool_entry_points")
-    webapp.mapper.connect('/api/entry_points/{id:.+?}/access', action='access_entry_point', controller="tool_entry_points")
+    webapp.mapper.connect('/api/entry_points/{id:.+?}/access', action='access_entry_point',
+                          controller="tool_entry_points")
 
-    webapp.mapper.connect('/api/dependency_resolvers/clean', action="clean", controller="tool_dependencies", conditions=dict(method=["POST"]))
-    webapp.mapper.connect('/api/dependency_resolvers/dependency', action="manager_dependency", controller="tool_dependencies", conditions=dict(method=["GET"]))
-    webapp.mapper.connect('/api/dependency_resolvers/dependency', action="install_dependency", controller="tool_dependencies", conditions=dict(method=["POST"]))
-    webapp.mapper.connect('/api/dependency_resolvers/requirements', action="manager_requirements", controller="tool_dependencies")
-    webapp.mapper.connect('/api/dependency_resolvers/unused_paths', action="unused_dependency_paths", controller="tool_dependencies", conditions=dict(method=["GET"]))
-    webapp.mapper.connect('/api/dependency_resolvers/unused_paths', action="delete_unused_dependency_paths", controller="tool_dependencies", conditions=dict(method=["PUT"]))
-    webapp.mapper.connect('/api/dependency_resolvers/toolbox', controller="tool_dependencies", action="summarize_toolbox", conditions=dict(method=["GET"]))
-    webapp.mapper.connect('/api/dependency_resolvers/toolbox/install', controller="tool_dependencies", action="toolbox_install", conditions=dict(method=["POST"]))
-    webapp.mapper.connect('/api/dependency_resolvers/toolbox/uninstall', controller="tool_dependencies", action="toolbox_uninstall", conditions=dict(method=["POST"]))
-    webapp.mapper.connect('/api/dependency_resolvers/{index}/clean', action="clean", controller="tool_dependencies", conditions=dict(method=["POST"]))
-    webapp.mapper.connect('/api/dependency_resolvers/{index}/dependency', action="resolver_dependency", controller="tool_dependencies", conditions=dict(method=["GET"]))
-    webapp.mapper.connect('/api/dependency_resolvers/{index}/dependency', action="install_dependency", controller="tool_dependencies", conditions=dict(method=["POST"]))
-    webapp.mapper.connect('/api/dependency_resolvers/{index}/requirements', action="resolver_requirements", controller="tool_dependencies")
-    webapp.mapper.resource('dependency_resolver', 'dependency_resolvers', controller="tool_dependencies", path_prefix='api')
-    webapp.mapper.connect('/api/container_resolvers', action="index", controller="container_resolution", conditions=dict(method=["GET"]))
-    webapp.mapper.connect('/api/container_resolvers/resolve', action="resolve", controller="container_resolution", conditions=dict(method=["GET"]))
-    webapp.mapper.connect('/api/container_resolvers/toolbox', action="resolve_toolbox", controller="container_resolution", conditions=dict(method=["GET"]))
-    webapp.mapper.connect('/api/container_resolvers/resolve/install', action="resolve_with_install", controller="container_resolution", conditions=dict(method=["POST"]))
-    webapp.mapper.connect('/api/container_resolvers/toolbox/install', action="resolve_toolbox_with_install", controller="container_resolution", conditions=dict(method=["POST"]))
-    webapp.mapper.connect('/api/container_resolvers/{index}', action="show", controller="container_resolution", conditions=dict(method=["GET"]))
-    webapp.mapper.connect('/api/container_resolvers/{index}/resolve', action="resolve", controller="container_resolution", conditions=dict(method=["GET"]))
-    webapp.mapper.connect('/api/container_resolvers/{index}/toolbox', action="resolve_toolbox", controller="container_resolution", conditions=dict(method=["GET"]))
-    webapp.mapper.connect('/api/container_resolvers/{index}/resolve/install', action="resolve_with_install", controller="container_resolution", conditions=dict(method=["POST"]))
-    webapp.mapper.connect('/api/container_resolvers/{index}/toolbox/install', action="resolve_toolbox_with_install", controller="container_resolution", conditions=dict(method=["POST"]))
+    webapp.mapper.connect('/api/dependency_resolvers/clean', action="clean", controller="tool_dependencies",
+                          conditions=dict(method=["POST"]))
+    webapp.mapper.connect('/api/dependency_resolvers/dependency', action="manager_dependency",
+                          controller="tool_dependencies", conditions=dict(method=["GET"]))
+    webapp.mapper.connect('/api/dependency_resolvers/dependency', action="install_dependency",
+                          controller="tool_dependencies", conditions=dict(method=["POST"]))
+    webapp.mapper.connect('/api/dependency_resolvers/requirements', action="manager_requirements",
+                          controller="tool_dependencies")
+    webapp.mapper.connect('/api/dependency_resolvers/unused_paths', action="unused_dependency_paths",
+                          controller="tool_dependencies", conditions=dict(method=["GET"]))
+    webapp.mapper.connect('/api/dependency_resolvers/unused_paths', action="delete_unused_dependency_paths",
+                          controller="tool_dependencies", conditions=dict(method=["PUT"]))
+    webapp.mapper.connect('/api/dependency_resolvers/toolbox', controller="tool_dependencies",
+                          action="summarize_toolbox", conditions=dict(method=["GET"]))
+    webapp.mapper.connect('/api/dependency_resolvers/toolbox/install', controller="tool_dependencies",
+                          action="toolbox_install", conditions=dict(method=["POST"]))
+    webapp.mapper.connect('/api/dependency_resolvers/toolbox/uninstall', controller="tool_dependencies",
+                          action="toolbox_uninstall", conditions=dict(method=["POST"]))
+    webapp.mapper.connect('/api/dependency_resolvers/{index}/clean', action="clean", controller="tool_dependencies",
+                          conditions=dict(method=["POST"]))
+    webapp.mapper.connect('/api/dependency_resolvers/{index}/dependency', action="resolver_dependency",
+                          controller="tool_dependencies", conditions=dict(method=["GET"]))
+    webapp.mapper.connect('/api/dependency_resolvers/{index}/dependency', action="install_dependency",
+                          controller="tool_dependencies", conditions=dict(method=["POST"]))
+    webapp.mapper.connect('/api/dependency_resolvers/{index}/requirements', action="resolver_requirements",
+                          controller="tool_dependencies")
+    webapp.mapper.resource('dependency_resolver', 'dependency_resolvers', controller="tool_dependencies",
+                           path_prefix='api')
+    webapp.mapper.connect('/api/container_resolvers', action="index", controller="container_resolution",
+                          conditions=dict(method=["GET"]))
+    webapp.mapper.connect('/api/container_resolvers/resolve', action="resolve", controller="container_resolution",
+                          conditions=dict(method=["GET"]))
+    webapp.mapper.connect('/api/container_resolvers/toolbox', action="resolve_toolbox",
+                          controller="container_resolution", conditions=dict(method=["GET"]))
+    webapp.mapper.connect('/api/container_resolvers/resolve/install', action="resolve_with_install",
+                          controller="container_resolution", conditions=dict(method=["POST"]))
+    webapp.mapper.connect('/api/container_resolvers/toolbox/install', action="resolve_toolbox_with_install",
+                          controller="container_resolution", conditions=dict(method=["POST"]))
+    webapp.mapper.connect('/api/container_resolvers/{index}', action="show", controller="container_resolution",
+                          conditions=dict(method=["GET"]))
+    webapp.mapper.connect('/api/container_resolvers/{index}/resolve', action="resolve",
+                          controller="container_resolution", conditions=dict(method=["GET"]))
+    webapp.mapper.connect('/api/container_resolvers/{index}/toolbox', action="resolve_toolbox",
+                          controller="container_resolution", conditions=dict(method=["GET"]))
+    webapp.mapper.connect('/api/container_resolvers/{index}/resolve/install', action="resolve_with_install",
+                          controller="container_resolution", conditions=dict(method=["POST"]))
+    webapp.mapper.connect('/api/container_resolvers/{index}/toolbox/install', action="resolve_toolbox_with_install",
+                          controller="container_resolution", conditions=dict(method=["POST"]))
 
     webapp.mapper.resource_with_deleted('user', 'users', path_prefix='/api')
     webapp.mapper.resource('genome', 'genomes', path_prefix='/api')
     webapp.mapper.connect('/api/genomes/{id}/indexes', controller='genomes', action='indexes')
     webapp.mapper.connect('/api/genomes/{id}/sequences', controller='genomes', action='sequences')
     webapp.mapper.resource('visualization', 'visualizations', path_prefix='/api')
-    webapp.mapper.connect('/api/visualizations/{id}/sharing', action='sharing', controller="visualizations", conditions=dict(method=["GET", "POST"]))
+    webapp.mapper.connect('/api/visualizations/{id}/sharing', action='sharing', controller="visualizations",
+                          conditions=dict(method=["GET", "POST"]))
     webapp.mapper.resource('plugins', 'plugins', path_prefix='/api')
     webapp.mapper.connect('/api/workflows/build_module', action='build_module', controller="workflows")
-    webapp.mapper.connect('/api/workflows/menu', action='get_workflow_menu', controller="workflows", conditions=dict(method=["GET"]))
-    webapp.mapper.connect('/api/workflows/menu', action='set_workflow_menu', controller="workflows", conditions=dict(method=["PUT"]))
+    webapp.mapper.connect('/api/workflows/menu', action='get_workflow_menu', controller="workflows",
+                          conditions=dict(method=["GET"]))
+    webapp.mapper.connect('/api/workflows/menu', action='set_workflow_menu', controller="workflows",
+                          conditions=dict(method=["PUT"]))
     webapp.mapper.resource('workflow', 'workflows', path_prefix='/api')
     webapp.mapper.resource_with_deleted('history', 'histories', path_prefix='/api')
     webapp.mapper.connect('/api/histories/{history_id}/citations', action='citations', controller="histories")
-    webapp.mapper.connect('/api/histories/{id}/sharing', action='sharing', controller="histories", conditions=dict(method=["GET", "POST"]))
+    webapp.mapper.connect('/api/histories/{id}/sharing', action='sharing', controller="histories",
+                          conditions=dict(method=["GET", "POST"]))
     webapp.mapper.connect(
         'dynamic_tool_confs',
         '/api/configuration/dynamic_tool_confs',
@@ -447,12 +505,14 @@ def populate_api_routes(webapp, app):
     webapp.mapper.resource('datatype',
                            'datatypes',
                            path_prefix='/api',
-                           collection={'sniffers': 'GET', 'mapping': 'GET', 'converters': 'GET', 'edam_data': 'GET', 'edam_formats': 'GET'},
+                           collection={'sniffers': 'GET', 'mapping': 'GET', 'converters': 'GET', 'edam_data': 'GET',
+                                       'edam_formats': 'GET'},
                            parent_resources=dict(member_name='datatype', collection_name='datatypes'))
     webapp.mapper.resource('search', 'search', path_prefix='/api')
     webapp.mapper.connect('/api/pages/{id}.pdf', action='show_pdf', controller="pages", conditions=dict(method=["GET"]))
     webapp.mapper.resource('page', 'pages', path_prefix="/api")
-    webapp.mapper.connect('/api/pages/{id}/sharing', action='sharing', controller="pages", conditions=dict(method=["GET", "POST"]))
+    webapp.mapper.connect('/api/pages/{id}/sharing', action='sharing', controller="pages",
+                          conditions=dict(method=["GET", "POST"]))
     webapp.mapper.resource('revision', 'revisions',
                            path_prefix='/api/pages/{page_id}',
                            controller='page_revisions',
@@ -483,25 +543,29 @@ def populate_api_routes(webapp, app):
                           controller='history_contents',
                           conditions=dict(method=["GET"]))
 
-    webapp.mapper.connect("/api/histories/{history_id}/contents/{type:%s}s/{id}/jobs_summary" % "|".join(valid_history_contents_types),
-                          action="show_jobs_summary",
-                          controller='history_contents',
-                          conditions=dict(method=["GET"]))
+    webapp.mapper.connect(
+        "/api/histories/{history_id}/contents/{type:%s}s/{id}/jobs_summary" % "|".join(valid_history_contents_types),
+        action="show_jobs_summary",
+        controller='history_contents',
+        conditions=dict(method=["GET"]))
     # ---- visualizations registry ---- generic template renderer
     # @deprecated: this route should be considered deprecated
-    webapp.add_route('/visualization/show/{visualization_name}', controller='visualization', action='render', visualization_name=None)
+    webapp.add_route('/visualization/show/{visualization_name}', controller='visualization', action='render',
+                     visualization_name=None)
 
     # provide an alternate route to visualization plugins that's closer to their static assets
     # (/plugins/visualizations/{visualization_name}/static) and allow them to use relative urls to those
     webapp.mapper.connect('visualization_plugin', '/plugins/visualizations/{visualization_name}/show',
-        controller='visualization', action='render')
+                          controller='visualization', action='render')
     webapp.mapper.connect('saved_visualization', '/plugins/visualizations/{visualization_name}/saved',
-        controller='visualization', action='saved')
+                          controller='visualization', action='saved')
     # same with IE's
-    webapp.mapper.connect('interactive_environment_plugin', '/plugins/interactive_environments/{visualization_name}/show',
-        controller='visualization', action='render')
-    webapp.mapper.connect('saved_interactive_environment', '/plugins/interactive_environments/{visualization_name}/saved',
-        controller='visualization', action='saved')
+    webapp.mapper.connect('interactive_environment_plugin',
+                          '/plugins/interactive_environments/{visualization_name}/show',
+                          controller='visualization', action='render')
+    webapp.mapper.connect('saved_interactive_environment',
+                          '/plugins/interactive_environments/{visualization_name}/saved',
+                          controller='visualization', action='saved')
 
     # Deprecated in favor of POST /api/workflows with 'workflow' in payload.
     webapp.mapper.connect('import_workflow_deprecated',
@@ -535,7 +599,8 @@ def populate_api_routes(webapp, app):
     # route for creating/getting converted datasets
     webapp.mapper.connect('/api/datasets/{dataset_id}/converted', controller='datasets', action='converted', ext=None)
     webapp.mapper.connect('/api/datasets/{dataset_id}/converted/{ext}', controller='datasets', action='converted')
-    webapp.mapper.connect('/api/datasets/{dataset_id}/permissions', controller='datasets', action='update_permissions', conditions=dict(method=["PUT"]))
+    webapp.mapper.connect('/api/datasets/{dataset_id}/permissions', controller='datasets', action='update_permissions',
+                          conditions=dict(method=["PUT"]))
 
     webapp.mapper.connect(
         'list_invocations',
@@ -602,7 +667,8 @@ def populate_api_routes(webapp, app):
     connect_invocation_endpoint('step_jobs_summary', '/step_jobs_summary', action='invocation_step_jobs_summary')
     connect_invocation_endpoint('cancel', '', action='cancel_invocation', conditions=dict(method=['DELETE']))
     connect_invocation_endpoint('show_step', '/steps/{step_id}', action='invocation_step')
-    connect_invocation_endpoint('update_step', '/steps/{step_id}', action='update_invocation_step', conditions=dict(method=['PUT']))
+    connect_invocation_endpoint('update_step', '/steps/{step_id}', action='update_invocation_step',
+                                conditions=dict(method=['PUT']))
 
     # ============================
     # ===== AUTHENTICATE API =====
@@ -931,20 +997,33 @@ def populate_api_routes(webapp, app):
     webapp.mapper.resource('job',
                            'jobs',
                            path_prefix='/api')
-    webapp.mapper.connect('job_search', '/api/jobs/search', controller='jobs', action='search', conditions=dict(method=['POST']))
-    webapp.mapper.connect('job_inputs', '/api/jobs/{id}/inputs', controller='jobs', action='inputs', conditions=dict(method=['GET']))
-    webapp.mapper.connect('job_outputs', '/api/jobs/{id}/outputs', controller='jobs', action='outputs', conditions=dict(method=['GET']))
-    webapp.mapper.connect('build_for_rerun', '/api/jobs/{id}/build_for_rerun', controller='jobs', action='build_for_rerun', conditions=dict(method=['GET']))
-    webapp.mapper.connect('resume', '/api/jobs/{id}/resume', controller='jobs', action='resume', conditions=dict(method=['PUT']))
-    webapp.mapper.connect('job_error', '/api/jobs/{id}/error', controller='jobs', action='error', conditions=dict(method=['POST']))
-    webapp.mapper.connect('common_problems', '/api/jobs/{id}/common_problems', controller='jobs', action='common_problems', conditions=dict(method=['GET']))
+    webapp.mapper.connect('job_search', '/api/jobs/search', controller='jobs', action='search',
+                          conditions=dict(method=['POST']))
+    webapp.mapper.connect('job_inputs', '/api/jobs/{id}/inputs', controller='jobs', action='inputs',
+                          conditions=dict(method=['GET']))
+    webapp.mapper.connect('job_outputs', '/api/jobs/{id}/outputs', controller='jobs', action='outputs',
+                          conditions=dict(method=['GET']))
+    webapp.mapper.connect('build_for_rerun', '/api/jobs/{id}/build_for_rerun', controller='jobs',
+                          action='build_for_rerun', conditions=dict(method=['GET']))
+    webapp.mapper.connect('resume', '/api/jobs/{id}/resume', controller='jobs', action='resume',
+                          conditions=dict(method=['PUT']))
+    webapp.mapper.connect('job_error', '/api/jobs/{id}/error', controller='jobs', action='error',
+                          conditions=dict(method=['POST']))
+    webapp.mapper.connect('common_problems', '/api/jobs/{id}/common_problems', controller='jobs',
+                          action='common_problems', conditions=dict(method=['GET']))
     # Job metrics and parameters by job id or dataset id (for slightly different accessibility checking)
-    webapp.mapper.connect('metrics', '/api/jobs/{job_id}/metrics', controller='jobs', action='metrics', conditions=dict(method=['GET']))
-    webapp.mapper.connect('show_job_lock', '/api/job_lock', controller='jobs', action='show_job_lock', conditions=dict(method=['GET']))
-    webapp.mapper.connect('update_job_lock', '/api/job_lock', controller='jobs', action='update_job_lock', conditions=dict(method=['PUT']))
-    webapp.mapper.connect('dataset_metrics', '/api/datasets/{dataset_id}/metrics', controller='jobs', action='metrics', conditions=dict(method=['GET']))
-    webapp.mapper.connect('parameters_display', '/api/jobs/{job_id}/parameters_display', controller='jobs', action='parameters_display', conditions=dict(method=['GET']))
-    webapp.mapper.connect('dataset_parameters_display', '/api/datasets/{dataset_id}/parameters_display', controller='jobs', action='parameters_display', conditions=dict(method=['GET']))
+    webapp.mapper.connect('metrics', '/api/jobs/{job_id}/metrics', controller='jobs', action='metrics',
+                          conditions=dict(method=['GET']))
+    webapp.mapper.connect('show_job_lock', '/api/job_lock', controller='jobs', action='show_job_lock',
+                          conditions=dict(method=['GET']))
+    webapp.mapper.connect('update_job_lock', '/api/job_lock', controller='jobs', action='update_job_lock',
+                          conditions=dict(method=['PUT']))
+    webapp.mapper.connect('dataset_metrics', '/api/datasets/{dataset_id}/metrics', controller='jobs', action='metrics',
+                          conditions=dict(method=['GET']))
+    webapp.mapper.connect('parameters_display', '/api/jobs/{job_id}/parameters_display', controller='jobs',
+                          action='parameters_display', conditions=dict(method=['GET']))
+    webapp.mapper.connect('dataset_parameters_display', '/api/datasets/{dataset_id}/parameters_display',
+                          controller='jobs', action='parameters_display', conditions=dict(method=['GET']))
 
     # Job files controllers. Only for consumption by remote job runners.
     webapp.mapper.resource('file',
@@ -1083,7 +1162,8 @@ def populate_api_routes(webapp, app):
                            name_prefix='tool_shed_repository_',
                            path_prefix='/api',
                            new={'install_repository_revision': 'POST'},
-                           parent_resources=dict(member_name='tool_shed_repository', collection_name='tool_shed_repositories'))
+                           parent_resources=dict(member_name='tool_shed_repository',
+                                                 collection_name='tool_shed_repositories'))
 
     # ==== Trace/Metrics Logger
     # Connect logger from app
