@@ -71,7 +71,8 @@ class CollectlPlugin(InstrumentPlugin):
         self.log_collectl_program_output = util.asbool(kwargs.get("log_collectl_program_output", False))
         if self.summarize_process_data:
             if subsystems.get_subsystem("process") not in self.subsystems:
-                raise Exception("Collectl plugin misconfigured - cannot summarize_process_data without process subsystem being enabled.")
+                raise Exception(
+                    "Collectl plugin misconfigured - cannot summarize_process_data without process subsystem being enabled.")
 
             process_statistics = kwargs.get("process_statistics", None)
             # None will let processes module use default set of statistics
@@ -215,4 +216,4 @@ def procfilt_argument(procfilt_on):
         return ""
 
 
-__all__ = ('CollectlPlugin', )
+__all__ = ('CollectlPlugin',)
